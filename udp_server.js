@@ -30,7 +30,7 @@ server.on("listening", function () {
 
 function ParseMsg(msg) {
   var data = new Object();
-  msg = "." + msg;
+  msg = "." + msg;      // Adding one character to make it easier to match the spec in EJU handbook.
   data.ProtoVer       	= msg.substr(2, 3);
   data.IDEvent        	= msg.substr(5, 20);
   data.Gender         	= msg.substr(25, 1);
