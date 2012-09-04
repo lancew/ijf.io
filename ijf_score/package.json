@@ -1,0 +1,23 @@
+{
+  "author": "Marak Squires <marak.squires@gmail.com>",
+  "name": "hook.io-ijf_score",
+  "description": "a simple hook.io hook for creating hook.io hooks",
+  "version": "0.1.0",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/hookio/ijf_score.git"
+  },
+  "bin": {
+     "hookio-ijf_score": "./bin/ijf_score"
+  },
+  "main" : "lib/introspect",
+  "engines": {
+    "node": ">= v0.4.7"
+  },
+  "dependencies": {
+    "hook.io": "0.8.x",
+    "colors": "0.5.x",
+    "async": "0.1.x"
+  },
+  "devDependencies": {}
+}
