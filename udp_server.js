@@ -5,21 +5,39 @@ var server = dgram.createSocket("udp4");
 // ------------------
 // vars for data
 // -----------------
-var old_data;
+var old_bluei = 0;
+var old_white = 0;
 
 
 server.on("message", function (data, rinfo) {
   msg = data.toString();
   var data = ParseMsg(msg);
 
-
   if(data.ProtoVer == '040'){
-    if(data.TimerFlag == 1) {
-      data_old = data;
-      console.log("(Mat "+data.MatSending+") "+data.TimerMinute+":"+data.TimerSecond+" "+data.NameWhiteLong+" vs. "+data.NameBlueLong);	
-    }
-  }  
- 
+	var white_score = data.IpponWhite + data.WazaWhite + data.YukoWhite + "(" + data.PenaltyWhite + ")";
+        var blue_score  = data.IpponBlue + data.WazaBlue + data.YukoBlue + "(" + data.PenaltyBlue + ")";
+      var msg = "(Mat:";
+      msg += data.MatSending;
+      msg += ") ";
+      msg += data.TimerMinute + ":" + data.TimerSecond;
+      msg += " " + data.NameWhiteLong;
+      msg = msg.replace(/^\s+|\s+$/g,'');
+      msg += " ";
+      msg += white_score;
+      msg += ":";
+      msg += blue_score
+      msg += " ";
+
+      msg += data.NameBlueLong;
+      msg = msg.replace(/^\s+|\s+$/g,'');
+
+      if((old_white != white_score) || (old_blue != blue_score))
+	{
+      		console.log(msg);
+		old_white = white_score;
+		old_blue = blue_score;
+	}    
+  } 
 });
 
 server.on("listening", function () {
@@ -69,7 +87,7 @@ function ParseMsg(msg) {
   data.IDJudge1		= msg.substr(180, 15);
   data.IDJudge2		= msg.substr(195, 15);
   data.MatSending	= msg.substr(210, 1);
-  data.DisplayMode	= msg.substr(211, 1);
+  data.DisplayMode	= msg.substr(211, 1);		// 1 Logo, 6 Timer
  
   return(data);
 }
