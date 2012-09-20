@@ -5,7 +5,7 @@ var server = dgram.createSocket("udp4");
 // ------------------
 // vars for data
 // -----------------
-var old_bluei = 0;
+var old_blue = 0;
 var old_white = 0;
 
 
