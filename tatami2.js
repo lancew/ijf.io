@@ -1,13 +1,27 @@
+var config = require('./config')
+
 var dgram = require("dgram");
+var nano = require('nano')(config.db.url);    
+var growl = require('growl')
+var Twit = require('twit');
+
+var scoresdb = nano.db.use(config.db.name);
+
+var T = new Twit({
+    consumer_key:         config.twitter.consumer_key
+  , consumer_secret:      config.twitter.consumer_secret
+  , access_token:         config.twitter.access_token
+  , access_token_secret:  config.twitter.access_token_secret
+});
 
 var server = dgram.createSocket("udp4");
 
 // ------------------
 // vars for data
 // -----------------
-var old_blue = 0;
-var old_white = 0;
-
+var old_blue  = '000(0)';
+var old_white = '000(0)';
+var flag = 0;
 
 server.on("message", function (data, rinfo) {
   msg = data.toString();
@@ -16,27 +30,61 @@ server.on("message", function (data, rinfo) {
   if(data.ProtoVer == '040'){
 	var white_score = data.IpponWhite + data.WazaWhite + data.YukoWhite + "(" + data.PenaltyWhite + ")";
         var blue_score  = data.IpponBlue + data.WazaBlue + data.YukoBlue + "(" + data.PenaltyBlue + ")";
-      var msg = "(Mat:";
+      var msg = "#adidas ";
+      msg += data.IDEvent.toUpperCase();
+      msg = msg.replace(/^\s+|\s+$/g,'');
+      msg += " " + data.Category + "kg";
+      msg += " Mat:";
       msg += data.MatSending;
-      msg += ") ";
+      msg += " ";
       msg += data.TimerMinute + ":" + data.TimerSecond;
       msg += " " + data.NameWhiteLong;
       msg = msg.replace(/^\s+|\s+$/g,'');
-      msg += " ";
+      msg += " (";
+      msg += data.NationWhite;
+      msg += ") ";
       msg += white_score;
-      msg += ":";
+      msg += "-";
       msg += blue_score
       msg += " ";
-
       msg += data.NameBlueLong;
       msg = msg.replace(/^\s+|\s+$/g,'');
-
-      if((old_white != white_score) || (old_blue != blue_score))
+      msg += " (";
+      msg += data.NationBlue;
+      msg += ") ";
+      if( (data.Winner != 0 ) )
 	{
-      		console.log(msg);
-		old_white = white_score;
-		old_blue = blue_score;
-	}    
+		if( flag == 0 )
+		{
+	//		T.post('statuses/update', { status: msg }, function(err, reply) {
+	//			  console.log(err);
+	//		});
+			growl(msg,{title: "Mat "+data.MatSending});
+                	console.log(msg);
+			flag = 1;
+		}
+	
+	} else { flag = 0; }
+
+       if( (white_score != old_white) || (blue_score != old_blue))
+	{
+	   // If there is a change in scores, add the data to the couchDB
+	   var now = new Date();
+	   var jsonDate = now.toJSON();
+
+	   data.timestamp = jsonDate;
+
+	   scoresdb.insert(data);
+	   if((data.IpponWhite == "1")||(data.IpponBlue == "1"))
+		{
+			growl('IPPON!!', {title: "Mat "+data.MatSending});
+		}
+	}
+
+       old_white = white_score;
+       old_blue = blue_score;
+
+
   } 
 });
 

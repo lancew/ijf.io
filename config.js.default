@@ -1,0 +1,18 @@
+var config = {}
+
+config.twitter = {};
+config.db = {};
+
+config.twitter.consumer_key         = '';
+config.twitter.consumer_secret      = '';
+config.twitter.access_token         = '';
+config.twitter.access_token_secret  = '';
+
+config.db.url           = 'http://localhost:5984';
+config.db.name          = 'scores';
+config.db.local_name    = '';
+config.db.local_pass    = '';
+config.db.remote_name   = '';
+config.db.remote_pass   = '';
+
+module.exports = config;

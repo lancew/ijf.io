@@ -1,17 +1,15 @@
-var config = require('./config')
-
 var dgram = require("dgram");
-var nano = require('nano')(config.db.url);    
+var nano = require('nano')('http://localhost:5984');    
 var growl = require('growl')
 var Twit = require('twit');
 
-var scoresdb = nano.db.use(config.db.name);
+var scoresdb = nano.db.use('scores');
 
 var T = new Twit({
-    consumer_key:         config.twitter.consumer_key
-  , consumer_secret:      config.twitter.consumer_secret
-  , access_token:         config.twitter.access_token
-  , access_token_secret:  config.twitter.access_token_secret
+    consumer_key:         '5N9tCGqKThIkUR9c4i6A'
+  , consumer_secret:      'QBpo5lvipxz9UGU5dGc0g8zZfBCh6e593dUCRJZObg'
+  , access_token:         '330895829-iX6NBI6Bi3rLRP1NahEiwQkvkFBGIKvcJT6kvrV5'
+  , access_token_secret:  'a671YljiRNZH5WskSdQNlt4M5xiD0azkT5Ecswyqic'
 });
 
 var server = dgram.createSocket("udp4");
@@ -30,13 +28,13 @@ server.on("message", function (data, rinfo) {
   if(data.ProtoVer == '040'){
 	var white_score = data.IpponWhite + data.WazaWhite + data.YukoWhite + "(" + data.PenaltyWhite + ")";
         var blue_score  = data.IpponBlue + data.WazaBlue + data.YukoBlue + "(" + data.PenaltyBlue + ")";
-      var msg = "#adidas ";
+      var msg = "(";
       msg += data.IDEvent.toUpperCase();
       msg = msg.replace(/^\s+|\s+$/g,'');
       msg += " " + data.Category + "kg";
       msg += " Mat:";
       msg += data.MatSending;
-      msg += " ";
+      msg += ") ";
       msg += data.TimerMinute + ":" + data.TimerSecond;
       msg += " " + data.NameWhiteLong;
       msg = msg.replace(/^\s+|\s+$/g,'');
@@ -56,9 +54,9 @@ server.on("message", function (data, rinfo) {
 	{
 		if( flag == 0 )
 		{
-	//		T.post('statuses/update', { status: msg }, function(err, reply) {
-	//			  console.log(err);
-	//		});
+			T.post('statuses/update', { status: msg }, function(err, reply) {
+				  console.log(err);
+			});
 			growl(msg,{title: "Mat "+data.MatSending});
                 	console.log(msg);
 			flag = 1;
@@ -69,16 +67,8 @@ server.on("message", function (data, rinfo) {
        if( (white_score != old_white) || (blue_score != old_blue))
 	{
 	   // If there is a change in scores, add the data to the couchDB
-	   var now = new Date();
-	   var jsonDate = now.toJSON();
-
-	   data.timestamp = jsonDate;
-
 	   scoresdb.insert(data);
-	   if((data.IpponWhite == "1")||(data.IpponBlue == "1"))
-		{
-			growl('IPPON!!', {title: "Mat "+data.MatSending});
-		}
+
 	}
 
        old_white = white_score;
@@ -141,4 +131,4 @@ function ParseMsg(msg) {
 }
 
 
-server.bind(4003);
+server.bind(4001);
