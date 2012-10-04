@@ -1,20 +1,49 @@
+// --------------------------------------------
+// IJF Scoreboard listener utility
+//     by Lance Wicks<lw@judocoach.com>
+// 
+// This software is designed to listen to the 
+// IJF socreboard software and then record data
+// and tweet results.
+//
+// This is Node.js code available on github:
+// https://github.com/lancew/ijf.io.git
+// ---------------------------------------------
+
+
+// load the config settings and UDP module
 var config = require('./config')
-
+var udp_port = 4002;    // var to hold port to bind to so we don't have to scroll to the bottom
 var dgram = require("dgram");
-var nano = require('nano')(config.db.url);    
-var growl = require('growl')
-var Twit = require('twit');
-
-var scoresdb = nano.db.use(config.db.name);
-
-var T = new Twit({
-    consumer_key:         config.twitter.consumer_key
-  , consumer_secret:      config.twitter.consumer_secret
-  , access_token:         config.twitter.access_token
-  , access_token_secret:  config.twitter.access_token_secret
-});
-
 var server = dgram.createSocket("udp4");
+
+
+// load the growl module if required
+// only of use on OSX.
+if(config.growl.active == 'true')
+{
+    var growl = require('growl')
+}
+
+// load the CoachDB module and set it up if required
+if(config.db.active == 'true')
+{
+    var nano = require('nano')(config.db.url);    
+    var scoresdb = nano.db.use(config.db.name);
+}
+
+// load the twitter module and settings if required
+if(config.twitter.active == 'true')
+{
+    var Twit = require('twit');
+    var T = new Twit({
+        consumer_key:         config.twitter.consumer_key
+        , consumer_secret:      config.twitter.consumer_secret
+        , access_token:         config.twitter.access_token
+        , access_token_secret:  config.twitter.access_token_secret
+    });
+}
+
 
 // ------------------
 // vars for data
@@ -23,14 +52,16 @@ var old_blue  = '000(0)';
 var old_white = '000(0)';
 var flag = 0;
 
+// if we receive a message UDP packet
+// ----------------------------------------------------
 server.on("message", function (data, rinfo) {
   msg = data.toString();
   var data = ParseMsg(msg);
 
   if(data.ProtoVer == '040'){
-	var white_score = data.IpponWhite + data.WazaWhite + data.YukoWhite + "(" + data.PenaltyWhite + ")";
-        var blue_score  = data.IpponBlue + data.WazaBlue + data.YukoBlue + "(" + data.PenaltyBlue + ")";
-      var msg = "#adidas ";
+	  var white_score = data.IpponWhite + data.WazaWhite + data.YukoWhite + "(" + data.PenaltyWhite + ")";
+      var blue_score  = data.IpponBlue + data.WazaBlue + data.YukoBlue + "(" + data.PenaltyBlue + ")";
+      var msg = "";
       msg += data.IDEvent.toUpperCase();
       msg = msg.replace(/^\s+|\s+$/g,'');
       msg += " " + data.Category + "kg";
@@ -56,11 +87,18 @@ server.on("message", function (data, rinfo) {
 	{
 		if( flag == 0 )
 		{
-	//		T.post('statuses/update', { status: msg }, function(err, reply) {
-	//			  console.log(err);
-	//		});
-			growl(msg,{title: "Mat "+data.MatSending});
-                	console.log(msg);
+		    if(config.twitter.active == 'true')
+		    {
+	       		T.post('statuses/update', { status: msg }, function(err, reply) {
+				  console.log(err);
+	       		});
+	        }
+	        
+	        if(config.growl.active == 'true')
+	        {
+			     growl(msg,{title: "Mat "+data.MatSending});
+            }
+                 console.log(msg);
 			flag = 1;
 		}
 	
@@ -73,27 +111,38 @@ server.on("message", function (data, rinfo) {
 	   var jsonDate = now.toJSON();
 
 	   data.timestamp = jsonDate;
-
-	   scoresdb.insert(data);
+       if(config.db.active == 'true')
+       {
+	       scoresdb.insert(data);
+	   }
+	   
 	   if((data.IpponWhite == "1")||(data.IpponBlue == "1"))
 		{
+		   if(config.growl.active == 'true')
+		   {
 			growl('IPPON!!', {title: "Mat "+data.MatSending});
+		  }
 		}
 	}
 
        old_white = white_score;
        old_blue = blue_score;
 
-
   } 
 });
 
+
+// initial listening message on start
+// -------------------------------------------
 server.on("listening", function () {
   var address = server.address();
   console.log("server listening " +
       address.address + ":" + address.port);
 });
 
+
+// function to parse data packet from the IJF scoreboard
+// ---------------------------------------------------------
 function ParseMsg(msg) {
   var data = new Object();
   msg = "." + msg;      // Adding one character to make it easier to match the spec in EJU handbook.
@@ -118,7 +167,7 @@ function ParseMsg(msg) {
   data.PenaltyWhite   	= msg.substr(97, 1);
   data.TimerOasaeWhite 	= msg.substr(98, 1);
   data.TeamScoreWhite  	= msg.substr(100, 1);
-  data.NationBlue	= msg.substr(101, 3);
+  data.NationBlue	    = msg.substr(101, 3);
   data.IDBlue		= msg.substr(104, 15);
   data.NameBlueShort	= msg.substr(119, 4);
   data.WRLBlue		= msg.substr(123, 3);
@@ -141,4 +190,6 @@ function ParseMsg(msg) {
 }
 
 
-server.bind(4002);
+
+// Bind our server object to the correct port
+server.bind(udp_port);

@@ -13,7 +13,7 @@
 
 // load the config settings and UDP module
 var config = require('./config')
-var udp_port = 4003;    // var to hold port to bind to so we don't have to scroll to the bottom
+var udp_port = 4004;    // var to hold port to bind to so we don't have to scroll to the bottom
 var dgram = require("dgram");
 var server = dgram.createSocket("udp4");
 
