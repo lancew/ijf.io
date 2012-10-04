@@ -1,13 +1,27 @@
-var config = {}
+// config file, this file needs to be renamed to config.js and the  values entered
 
+// Base objects, do not edit
+// ------------------------------
+var config = {}
 config.twitter = {};
 config.db = {};
+config.growl = {};
 
+// Twitter settings
+// Set active to 'true' to use twitter then fill in your keys and tokens 
+// which you get from twitter when you setup a new app.
+// ---------------------------------------------------------------
+config.twitter.active               = 'false';
 config.twitter.consumer_key         = '';
 config.twitter.consumer_secret      = '';
 config.twitter.access_token         = '';
 config.twitter.access_token_secret  = '';
 
+// CouchDB database settings
+// Set active to 'true' to write scoreboard changes to a couchDB database
+// Fill in other variables to match your database settings.
+// --------------------------------------------------------------
+config.db.active        = 'false';
 config.db.url           = 'http://localhost:5984';
 config.db.name          = 'scores';
 config.db.local_name    = '';
@@ -15,4 +29,12 @@ config.db.local_pass    = '';
 config.db.remote_name   = '';
 config.db.remote_pass   = '';
 
+// Growl for OSX setting
+// Set active to 'true' to have a growl message on Ippon.
+// -------------------------------------------------------------
+config.growl.active     = 'true';
+
+
+// End of settings, do not change the next line as it exports config settings to the main app
+// ---------------------------------------------------------------------------------------------
 module.exports = config;
