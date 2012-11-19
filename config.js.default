@@ -32,7 +32,7 @@ config.db.remote_pass   = '';
 // Growl for OSX setting
 // Set active to 'true' to have a growl message on Ippon.
 // -------------------------------------------------------------
-config.growl.active     = 'true';
+config.growl.active     = 'false';
 
 
 // End of settings, do not change the next line as it exports config settings to the main app

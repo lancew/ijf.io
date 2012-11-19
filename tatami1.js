@@ -57,7 +57,6 @@ var flag = 0;
 server.on("message", function (data, rinfo) {
   msg = data.toString();
   var data = ParseMsg(msg);
-
   if(data.ProtoVer == '040'){
 	  var white_score = data.IpponWhite + data.WazaWhite + data.YukoWhite + "(" + data.PenaltyWhite + ")";
       var blue_score  = data.IpponBlue + data.WazaBlue + data.YukoBlue + "(" + data.PenaltyBlue + ")";
