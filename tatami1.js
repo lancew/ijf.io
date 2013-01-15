@@ -110,12 +110,22 @@ server.on("message", function(data, rinfo) {
         old_blue = blue_score;
     }
 });
+
+
+
+
+
 // initial listening message on start
 // -------------------------------------------
 server.on("listening", function() {
     var address = server.address();
     console.log("server listening " + address.address + ":" + address.port);
+
 });
+
+
+
+
 // function to parse data packet from the IJF scoreboard
 // ---------------------------------------------------------
 
@@ -163,5 +173,9 @@ function ParseMsg(msg) {
     data.DisplayMode = msg.substr(211, 1); // 1 Logo, 6 Timer
     return (data);
 }
+
+
 // Bind our server object to the correct port
 server.bind(udp_port);
+
+
