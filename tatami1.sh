@@ -64,7 +64,7 @@ DESC="tatami1 node.js server"          # whatever fancy description you like
 NODEUSER=pi                                 # USER who OWNS the daemon process (no matter whoever runs the init script)
                                             # user:group (if no group is specified, the primary GID for that user is used)
 
-LOCAL_VAR_RUN=/usr/local/var/run            # in case the init script is run by non-root user, you need to
+LOCAL_VAR_RUN=/home/pi/                     # in case the init script is run by non-root user, you need to
                                             # indicate a directory writeable by $NODEUSER to store the PID file
                                             # NB : 1) /usr/local/var/run does not exist by DEFAULT. Either create it
                                             #      or choose one of your own liking.
