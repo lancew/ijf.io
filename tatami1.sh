@@ -37,37 +37,31 @@
 #     modified for nave and many pids by : Shimon Doodkin (doodkin.com)
 # ______________________________________________________________________________
 ### BEGIN INIT INFO
-# Provides:          APPNAME_node_debian_init
+# Provides:          tatami1_node_debian_init
 # Required-Start:    $remote_fs $named $syslog
 # Required-Stop:     $remote_fs $named $syslog
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
-# Short-Description: DEBIAN initscript for node.js servers/apps
-# Description:       ex : proxy server is a node.js http server listening on
-#                    port 8080 (relayed from 80 by iptables). It balances
-#                    http requests between the main nodejs server
-#                    (nodejs.mydomain.com:8000), the static file-server
-#                    (static.mydomain.com) and the legacy apache server
-#                    (apache.mydomain.com) and possibly other servers
+# Short-Description: DEBIAN initscript for node.js tatami1 app
+# Description:       Starts the IJF tatami1 node script
+#                    
 #                    place this file in /etc/init.d.
 ### END INIT INFO
 
-# Author: My Name <myname@domain.tld>
+# Author: Lance Wicks <lw@judocoach.com>
 #
-# Please remove the "Author" lines above and replace them
-# with your own name if you copy and modify this script.
 # ______________________________________________________________________________
 #
 # PATH should only include /usr/* if it runs after the mountnfs.sh script
 PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin # modify if you need
 
 
-DAEMON_ARGS="use 0.4.8 /home/APPNAME/public_html/server.js"               # node arguments ex. path to your app.js/server.js
+DAEMON_ARGS="forever start /home/pi/ijf.io/tatami1.js"               # node arguments ex. path to your app.js/server.js
                                             # NB: don't use ~/ in path
 
-DESC="tatami1 node.js http server"          # whatever fancy description you like
+DESC="tatami1 node.js server"          # whatever fancy description you like
 
-NODEUSER=APPNAME:APPNAME                    # USER who OWNS the daemon process (no matter whoever runs the init script)
+NODEUSER=pi                                 # USER who OWNS the daemon process (no matter whoever runs the init script)
                                             # user:group (if no group is specified, the primary GID for that user is used)
 
 LOCAL_VAR_RUN=/usr/local/var/run            # in case the init script is run by non-root user, you need to
@@ -77,8 +71,8 @@ LOCAL_VAR_RUN=/usr/local/var/run            # in case the init script is run by 
                                             #      2) node, npm,... are best NOT installed/run as ROOT.
                                             #         (see here: https://github.com/isaacs/npm/blob/master/README.md)
 
-NAME=tatam1_nodejs                         # name of the service
-DAEMON=/bin/nave                            # this SHOULD POINT TO where your node executable is
+NAME=tatami1_nodejs                         # name of the service
+DAEMON=/usr/local/bin/forever               # this SHOULD POINT TO where your node executable is
                                             # you may use any other start script insted
                                             # if your app stareted from a bash file put it here and put the arguments above
 #DAEMON=$(which node)                       # uncomment this to use node js insted of nave (and comment the nave line one above)
