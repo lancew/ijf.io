@@ -38,7 +38,7 @@ config.growl.active     = 'false';
 // --------------------------------------
 config.judobase.active 	= 'false';
 config.judobase.url 	= '';
-
+config.judobase.path 	= '';
 
 
 // End of settings, do not change the next line as it exports config settings to the main app
