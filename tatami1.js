@@ -42,7 +42,7 @@ var old_white = '000(0)';
 var flag = 0;
 // if we receive a message UDP packet
 // ----------------------------------------------------
-server.on("message", function(data, rinfo) {
+server.on("message", function (data, rinfo) {
     msg = data.toString();
     var data = ParseMsg(msg);
     if (data.ProtoVer == '040') {
@@ -75,7 +75,7 @@ server.on("message", function(data, rinfo) {
                 if (config.twitter.active == 'true') {
                     T.post('statuses/update', {
                         status: msg
-                    }, function(err, reply) {
+                    }, function (err, reply) {
                         console.log(err);
                     });
                 }
@@ -96,15 +96,15 @@ server.on("message", function(data, rinfo) {
             var jsonDate = now.toJSON();
             data.timestamp = jsonDate;
 
-	    // Update the couchdb database if set to active in config file
+            // Update the couchdb database if set to active in config file
             if (config.db.active == 'true') {
                 scoresdb.insert(data);
             }
 
-	    // Send data to Judobase if set to active in config file
-	    if (config.judobase.active == 'true') {
-	    	post_to_judobase(data);
-	    }
+            // Send data to Judobase if set to active in config file
+            if (config.judobase.active == 'true') {
+                post_to_judobase(data);
+            }
 
             if ((data.IpponWhite == "1") || (data.IpponBlue == "1")) {
                 if (config.growl.active == 'true') {
@@ -125,7 +125,7 @@ server.on("message", function(data, rinfo) {
 
 // initial listening message on start
 // -------------------------------------------
-server.on("listening", function() {
+server.on("listening", function () {
     var address = server.address();
     console.log("server listening " + address.address + ":" + address.port);
 
@@ -184,25 +184,23 @@ function ParseMsg(msg) {
 
 // This function posts a data object to the judobase web service.
 function post_to_judobase(data) {
-	querystring = require('querystring');
+    querystring = require('querystring');
 
-	var options = {
-  		host: config.judobase.url,
-  		port: 80,
-  		path: config.judobase.path,
-  		method: 'GET',
-		path: config.judobase.path + '?' + querystring.stringify(data)
-	};
-	
-	var http = require('http');
-	var req = http.request(options, function(res) {
+    var options = {
+        host: config.judobase.url,
+        port: 80,
+        path: config.judobase.path,
+        method: 'GET',
+        path: config.judobase.path + '?' + querystring.stringify(data)
+    };
 
-	});
-	req.end();
+    var http = require('http');
+    var req = http.request(options, function (res) {
+
+    });
+    req.end();
 }
 
 
 // Bind our server object to the correct port
 server.bind(udp_port);
-
-
