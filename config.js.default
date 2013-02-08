@@ -34,6 +34,12 @@ config.db.remote_pass   = '';
 // -------------------------------------------------------------
 config.growl.active     = 'false';
 
+// Judobase settings
+// --------------------------------------
+config.judobase.active 	= 'false';
+config.judobase.url 	= '';
+
+
 
 // End of settings, do not change the next line as it exports config settings to the main app
 // ---------------------------------------------------------------------------------------------

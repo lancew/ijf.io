@@ -95,9 +95,17 @@ server.on("message", function(data, rinfo) {
             var now = new Date();
             var jsonDate = now.toJSON();
             data.timestamp = jsonDate;
+
+	    // Update the couchdb database if set to active in config file
             if (config.db.active == 'true') {
                 scoresdb.insert(data);
             }
+
+	    // Send data to Judobase if set to active in config file
+	    if (config.judobase.active == 'true') {
+	    	post_to_judobase(data);
+	    }
+
             if ((data.IpponWhite == "1") || (data.IpponBlue == "1")) {
                 if (config.growl.active == 'true') {
                     growl('IPPON!!', {
@@ -172,6 +180,25 @@ function ParseMsg(msg) {
     data.MatSending = msg.substr(210, 1);
     data.DisplayMode = msg.substr(211, 1); // 1 Logo, 6 Timer
     return (data);
+}
+
+// This function posts a data object to the judobase web service.
+function post_to_judobase(data) {
+	querystring = require('querystring');
+
+	var options = {
+  		host: config.judobase.url,
+  		port: 80,
+  		path: config.judobase.path,
+  		method: 'GET',
+		path: config.judobase.path + '?' + querystring.stringify(data)
+	};
+	
+	var http = require('http');
+	var req = http.request(options, function(res) {
+
+	});
+	req.end();
 }
 
 
