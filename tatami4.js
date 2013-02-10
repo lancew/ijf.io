@@ -42,13 +42,20 @@ var old_white = '000(0)';
 var flag = 0;
 // if we receive a message UDP packet
 // ----------------------------------------------------
-server.on("message", function(data, rinfo) {
+server.on("message", function (data, rinfo) {
     msg = data.toString();
     var data = ParseMsg(msg);
+
+
+  if (parseInt(data.TimerFlag) == 1) {
+	console.log('.');
+       post_to_judobase(data);
+    }
+
     if (data.ProtoVer == '040') {
         var white_score = data.IpponWhite + data.WazaWhite + data.YukoWhite + "(" + data.PenaltyWhite + ")";
         var blue_score = data.IpponBlue + data.WazaBlue + data.YukoBlue + "(" + data.PenaltyBlue + ")";
-        var msg = "";
+        var msg = "#";
         msg += data.IDEvent.toUpperCase();
         msg = msg.replace(/^\s+|\s+$/g, '');
         msg += " " + data.Category + "kg";
@@ -58,24 +65,24 @@ server.on("message", function(data, rinfo) {
         msg += data.TimerMinute + ":" + data.TimerSecond;
         msg += " " + data.NameWhiteLong;
         msg = msg.replace(/^\s+|\s+$/g, '');
-        msg += " (";
+        msg += " #";
         msg += data.NationWhite;
-        msg += ") ";
+        msg += " ";
         msg += white_score;
         msg += "-";
         msg += blue_score;
         msg += " ";
         msg += data.NameBlueLong;
         msg = msg.replace(/^\s+|\s+$/g, '');
-        msg += " (";
+        msg += " #";
         msg += data.NationBlue;
-        msg += ") ";
+        msg += " ";
         if ((data.Winner != 0)) {
             if (flag == 0) {
                 if (config.twitter.active == 'true') {
                     T.post('statuses/update', {
                         status: msg
-                    }, function(err, reply) {
+                    }, function (err, reply) {
                         console.log(err);
                     });
                 }
@@ -95,9 +102,17 @@ server.on("message", function(data, rinfo) {
             var now = new Date();
             var jsonDate = now.toJSON();
             data.timestamp = jsonDate;
+
+            // Update the couchdb database if set to active in config file
             if (config.db.active == 'true') {
                 scoresdb.insert(data);
             }
+
+            // Send data to Judobase if set to active in config file
+            if (config.judobase.active == 'true') {
+                post_to_judobase(data);
+            }
+
             if ((data.IpponWhite == "1") || (data.IpponBlue == "1")) {
                 if (config.growl.active == 'true') {
                     growl('IPPON!!', {
@@ -110,12 +125,22 @@ server.on("message", function(data, rinfo) {
         old_blue = blue_score;
     }
 });
+
+
+
+
+
 // initial listening message on start
 // -------------------------------------------
-server.on("listening", function() {
+server.on("listening", function () {
     var address = server.address();
     console.log("server listening " + address.address + ":" + address.port);
+
 });
+
+
+
+
 // function to parse data packet from the IJF scoreboard
 // ---------------------------------------------------------
 
@@ -163,5 +188,26 @@ function ParseMsg(msg) {
     data.DisplayMode = msg.substr(211, 1); // 1 Logo, 6 Timer
     return (data);
 }
+
+// This function posts a data object to the judobase web service.
+function post_to_judobase(data) {
+    querystring = require('querystring');
+
+    var options = {
+        host: config.judobase.url,
+        port: 80,
+        path: config.judobase.path,
+        method: 'GET',
+        path: config.judobase.path + '?' + querystring.stringify(data)
+    };
+
+    var http = require('http');
+    var req = http.request(options, function (res) {
+
+    });
+    req.end();
+}
+
+
 // Bind our server object to the correct port
 server.bind(udp_port);

@@ -11,7 +11,7 @@
 // ---------------------------------------------
 // load the config settings and UDP module
 var config = require('./config');
-var udp_port = 4003; // var to hold port to bind to so we don't have to scroll to the bottom
+var udp_port = 4005; // var to hold port to bind to so we don't have to scroll to the bottom
 var dgram = require("dgram");
 var server = dgram.createSocket("udp4");
 // load the growl module if required
@@ -46,8 +46,6 @@ server.on("message", function (data, rinfo) {
     msg = data.toString();
     var data = ParseMsg(msg);
     if (data.ProtoVer == '040') {
-
-       post_to_judobase(data);
         var white_score = data.IpponWhite + data.WazaWhite + data.YukoWhite + "(" + data.PenaltyWhite + ")";
         var blue_score = data.IpponBlue + data.WazaBlue + data.YukoBlue + "(" + data.PenaltyBlue + ")";
         var msg = "#";

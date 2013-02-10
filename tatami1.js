@@ -58,18 +58,18 @@ server.on("message", function (data, rinfo) {
         msg += data.TimerMinute + ":" + data.TimerSecond;
         msg += " " + data.NameWhiteLong;
         msg = msg.replace(/^\s+|\s+$/g, '');
-        msg += " (";
+        msg += " #";
         msg += data.NationWhite;
-        msg += ") ";
+        msg += " ";
         msg += white_score;
         msg += "-";
         msg += blue_score;
         msg += " ";
         msg += data.NameBlueLong;
         msg = msg.replace(/^\s+|\s+$/g, '');
-        msg += " (";
+        msg += " #";
         msg += data.NationBlue;
-        msg += ") ";
+        msg += " ";
         if ((data.Winner != 0)) {
             if (flag == 0) {
                 if (config.twitter.active == 'true') {
