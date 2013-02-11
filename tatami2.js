@@ -9,21 +9,25 @@
 // This is Node.js code available on github:
 // https://github.com/lancew/ijf.io.git
 // ---------------------------------------------
+
 // load the config settings and UDP module
 var config = require('./config');
 var udp_port = 4002; // var to hold port to bind to so we don't have to scroll to the bottom
 var dgram = require("dgram");
 var server = dgram.createSocket("udp4");
+
 // load the growl module if required
-// only of use on OSX.
+// only of use on OSXi with growl installed.
 if (config.growl.active == 'true') {
     var growl = require('growl');
 }
+
 // load the CoachDB module and set it up if required
 if (config.db.active == 'true') {
     var nano = require('nano')(config.db.url);
     var scoresdb = nano.db.use(config.db.name);
 }
+
 // load the twitter module and settings if required
 if (config.twitter.active == 'true') {
     var Twit = require('twit');
@@ -34,22 +38,85 @@ if (config.twitter.active == 'true') {
         access_token_secret: config.twitter.access_token_secret
     });
 }
+
 // ------------------
 // vars for data
 // -----------------
 var old_blue = '000(0)';
 var old_white = '000(0)';
 var flag = 0;
+
+
 // if we receive a message UDP packet
 // ----------------------------------------------------
 server.on("message", function (data, rinfo) {
+    
+    // First convert the data packet to a string, then parse it using the ParseMsg function in this script
+    //  Which is basically just mapping the data to the IJF specfication.
     msg = data.toString();
     var data = ParseMsg(msg);
     if (data.ProtoVer == '040') {
 
-       if (parseInt(data.TimerFlag) == 1 ) {
-         post_to_judobase(data);
-       }
+	// Create a timestamp
+	var now = new Date();
+            var jsonDate = now.toJSON();
+            data.timestamp = jsonDate;
+	
+        // If the clock is running and we are posting to Judobase then call the sub to post an update.
+	if (Number(data.TimerFlag) && config.judobase.active == 'true') {
+
+	       post_to_judobase(data);
+	} 
+
+	// if configured to tweet, then call the post_to_twitter function in this script
+	if (config.twitter.active == 'true') {
+		post_to_twitter(data);
+	}
+
+        // Next check if the scores have changed. Most activities are called here to limit output to when scores change.
+        if ((white_score != old_white) || (blue_score != old_blue)) {
+
+            // Update the couchdb database if set to active in config file
+            if (config.db.active == 'true') {
+                scoresdb.insert(data);
+            }
+
+            // Send data to Judobase if set to active in config file
+            if (config.judobase.active == 'true') {
+                post_to_judobase(data);
+            }
+
+            // Use growl to pop up an Ippon message if required.
+	    if ((data.IpponWhite == "1") || (data.IpponBlue == "1")) {
+                if (config.growl.active == 'true') {
+                    growl('IPPON!!', {
+                        title: "Mat " + data.MatSending
+                    });
+                }
+            }
+        }
+
+	// Update the global old scores so that next time we receive a packet we have the last one to compare to
+        old_white = white_score;
+        old_blue = blue_score;
+    }
+});
+
+
+
+
+
+// initial listening message on start
+// -------------------------------------------
+server.on("listening", function () {
+    var address = server.address();
+    console.log("server listening " + address.address + ":" + address.port);
+
+});
+
+
+function post_to_twitter(data) {
+
         var white_score = data.IpponWhite + data.WazaWhite + data.YukoWhite + "(" + data.PenaltyWhite + ")";
         var blue_score = data.IpponBlue + data.WazaBlue + data.YukoBlue + "(" + data.PenaltyBlue + ")";
         var msg = "#";
@@ -94,49 +161,7 @@ server.on("message", function (data, rinfo) {
         } else {
             flag = 0;
         }
-        if ((white_score != old_white) || (blue_score != old_blue)) {
-            // If there is a change in scores, add the data to the couchDB
-            var now = new Date();
-            var jsonDate = now.toJSON();
-            data.timestamp = jsonDate;
-
-            // Update the couchdb database if set to active in config file
-            if (config.db.active == 'true') {
-                scoresdb.insert(data);
-            }
-
-            // Send data to Judobase if set to active in config file
-            if (config.judobase.active == 'true') {
-                post_to_judobase(data);
-            }
-
-            if ((data.IpponWhite == "1") || (data.IpponBlue == "1")) {
-                if (config.growl.active == 'true') {
-                    growl('IPPON!!', {
-                        title: "Mat " + data.MatSending
-                    });
-                }
-            }
-        }
-        old_white = white_score;
-        old_blue = blue_score;
-    }
-});
-
-
-
-
-
-// initial listening message on start
-// -------------------------------------------
-server.on("listening", function () {
-    var address = server.address();
-    console.log("server listening " + address.address + ":" + address.port);
-
-});
-
-
-
+}
 
 // function to parse data packet from the IJF scoreboard
 // ---------------------------------------------------------
