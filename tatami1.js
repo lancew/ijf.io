@@ -57,6 +57,12 @@ server.on("message", function (data, rinfo) {
     var data = ParseMsg(msg);
     if (data.ProtoVer == '040') {
 
+
+
+        var white_score = data.IpponWhite + data.WazaWhite + data.YukoWhite + "(" + data.PenaltyWhite + ")";
+        var blue_score = data.IpponBlue + data.WazaBlue + data.YukoBlue + "(" + data.PenaltyBlue + ")";
+
+		
 	// Create a timestamp
 	var now = new Date();
             var jsonDate = now.toJSON();
@@ -74,7 +80,7 @@ server.on("message", function (data, rinfo) {
 	}
 
         // Next check if the scores have changed. Most activities are called here to limit output to when scores change.
-        if ((white_score != old_white) || (blue_score != old_blue)) {
+        if ((msg.white_score != old_white) || (msg.blue_score != old_blue)) {
 
             // Update the couchdb database if set to active in config file
             if (config.db.active == 'true') {
