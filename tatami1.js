@@ -15,6 +15,8 @@ var config = require('./config');
 var udp_port = 4001; // var to hold port to bind to so we don't have to scroll to the bottom
 var dgram = require("dgram");
 var server = dgram.createSocket("udp4");
+var https = require('https');
+
 
 // load the growl module if required
 // only of use on OSXi with growl installed.
@@ -45,7 +47,7 @@ if (config.twitter.active == 'true') {
 var old_blue = '000(0)';
 var old_white = '000(0)';
 var flag = 0;
-
+var latest_fb_post = 0;
 
 // if we receive a message UDP packet
 // ----------------------------------------------------
@@ -162,7 +164,13 @@ function post_to_twitter(data) {
                     });
                 }
                 console.log(msg);
-                flag = 1;
+		
+		// This is the wrong place but I am putting the FB integration here for now.
+		// ---------------
+		if (config.facebook.active == 'true') {	
+                   postToFacebook(msg); 
+		}
+		flag = 1;
             }
         } else {
             flag = 0;
@@ -236,6 +244,42 @@ function post_to_judobase(data) {
     req.end();
 }
 
+function postToFacebook(str, cb) {
+  var req = https.request({
+    host: 'graph.facebook.com',
+    path: '/Judoticker/feed',
+    method: 'POST'
+  }, function(res) {
+    res.setEncoding('utf8');
+    res.on('data', function(chunk) {
+      console.log('got chunk '+chunk);
+    });
+    res.on('end', function() {
+      console.log('response end with status '+res.status);
+    });
+  });
+  req.end('message='+encodeURIComponent(str)
+    +'&access_token='+encodeURIComponent(config.facebook.access_token));
+  console.log('FB sent');
+};
+
+function deletePostFromFacebook(str, cb) {
+    var req = https.request({
+    host: 'graph.facebook.com',
+    path: '/'+str,
+    method: 'DELETE'
+  }, function(res) {
+    res.setEncoding('utf8');
+    res.on('data', function(chunk) {
+      console.log('got chunk '+chunk);
+    });
+    res.on('end', function() {
+      console.log('response end with status '+res.status);
+    });
+  });
+  req.end('&access_token='+encodeURIComponent(config.facebook.access_token));
+  console.log('FB delete');
+};
 
 // Bind our server object to the correct port
 server.bind(udp_port);
