@@ -15,8 +15,6 @@ var config = require('./config');
 var udp_port = 4001; // var to hold port to bind to so we don't have to scroll to the bottom
 var dgram = require("dgram");
 var server = dgram.createSocket("udp4");
-var https = require('https');
-
 
 // load the growl module if required
 // only of use on OSXi with growl installed.
@@ -47,7 +45,7 @@ if (config.twitter.active == 'true') {
 var old_blue = '000(0)';
 var old_white = '000(0)';
 var flag = 0;
-var latest_fb_post = 0;
+
 
 // if we receive a message UDP packet
 // ----------------------------------------------------
@@ -64,22 +62,22 @@ server.on("message", function (data, rinfo) {
         var white_score = data.IpponWhite + data.WazaWhite + data.YukoWhite + "(" + data.PenaltyWhite + ")";
         var blue_score = data.IpponBlue + data.WazaBlue + data.YukoBlue + "(" + data.PenaltyBlue + ")";
 
-        
-    // Create a timestamp
-    var now = new Date();
+		
+	// Create a timestamp
+	var now = new Date();
             var jsonDate = now.toJSON();
             data.timestamp = jsonDate;
-    
+	
         // If the clock is running and we are posting to Judobase then call the sub to post an update.
-    if (Number(data.TimerFlag) && config.judobase.active == 'true') {
+	if (Number(data.TimerFlag) && config.judobase.active == 'true') {
 
-           post_to_judobase(data);
-    } 
+	       post_to_judobase(data);
+	} 
 
-    // if configured to tweet, then call the post_to_twitter function in this script
-    if (config.twitter.active == 'true') {
-        post_to_twitter(data);
-    }
+	// if configured to tweet, then call the post_to_twitter function in this script
+	if (config.twitter.active == 'true') {
+		post_to_twitter(data);
+	}
 
         // Next check if the scores have changed. Most activities are called here to limit output to when scores change.
         if ((msg.white_score != old_white) || (msg.blue_score != old_blue)) {
@@ -94,21 +92,8 @@ server.on("message", function (data, rinfo) {
                 post_to_judobase(data);
             }
 
-            // Send data to facebook page
-            // ---------------
-            //  First delete the previous post if it exists, then post the new one, storing the 
-            if (config.facebook.active == 'true') { 
-        //          if (latest_fb_post != 0) {
-        //              deletePostFromFacebook(deletePostFromFacebook);
-        //          
-        //          }
-                  var result = postToFacebook(msg); 
-                  console.log(result);
-            }
-
-
             // Use growl to pop up an Ippon message if required.
-            if ((data.IpponWhite == "1") || (data.IpponBlue == "1")) {
+	    if ((data.IpponWhite == "1") || (data.IpponBlue == "1")) {
                 if (config.growl.active == 'true') {
                     growl('IPPON!!', {
                         title: "Mat " + data.MatSending
@@ -117,7 +102,7 @@ server.on("message", function (data, rinfo) {
             }
         }
 
-    // Update the global old scores so that next time we receive a packet we have the last one to compare to
+	// Update the global old scores so that next time we receive a packet we have the last one to compare to
         old_white = white_score;
         old_blue = blue_score;
     }
@@ -177,7 +162,6 @@ function post_to_twitter(data) {
                     });
                 }
                 console.log(msg);
-        
                 flag = 1;
             }
         } else {
@@ -252,62 +236,6 @@ function post_to_judobase(data) {
     req.end();
 }
 
-// Post a message to facebook
-//   input:  string containing message to be post
-//   output: string containing ID of post.
-// ------------------------------
-function postToFacebook(str, cb) {
-    var return_value = '';
-    var req = https.request({
-        host: 'graph.facebook.com',
-        path: '/Judoticker/feed',
-        method: 'POST'
-    }, 
-    function(res) {
-        res.setEncoding('utf8');
-        res.on('data', function(chunk) {
-            console.log('got chunk '+chunk);
-
-            return_value = JSON.parse(chunk).id;
-
-
-        });
-        res.on('end', function() {
-            console.log('response end with status '+res.status);
-        });
-    });
-    
-
-    req.end('message='+encodeURIComponent(str)
-                      +'&access_token='
-                      +encodeURIComponent(config.facebook.access_token)
-            );
-    console.log('FB sent');
-};
-
-
-
-// Post a message to facebook
-//   input:  string containing ID of post to be deleted
-//   output: 
-// ------------------------------
-function deletePostFromFacebook(str, cb) {
-    var req = https.request({
-    host: 'graph.facebook.com',
-    path: '/'+str,
-    method: 'DELETE'
-  }, function(res) {
-    res.setEncoding('utf8');
-    res.on('data', function(chunk) {
-      console.log('got chunk '+chunk);
-    });
-    res.on('end', function() {
-      console.log('response end with status '+res.status);
-    });
-  });
-  req.end('&access_token='+encodeURIComponent(config.facebook.access_token));
-  console.log('FB delete');
-};
 
 // Bind our server object to the correct port
 server.bind(udp_port);
