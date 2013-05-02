@@ -12,17 +12,25 @@
 
 // load the config settings and UDP module
 var config = require('./config');
-var udp_port = 4001; // var to hold port to bind to so we don't have to scroll to the bottom
+var udp_port = 5000; // var to hold port to bind to so we don't have to scroll to the bottom
 var dgram = require("dgram");
 var server = dgram.createSocket("udp4");
 
 // ------------------
 // vars for data
 // -----------------
-var old_blue = '000(0)';
-var old_white = '000(0)';
-var flag = 0;
+var state   =   {};
+state.t1    =   {};
+state.t2    =   {};
+state.t3    =   {};
+state.t4    =   {};
+state.t5    =   {};
 
+state.t1.flag = 0;
+state.t2.flag = 0;
+state.t3.flag = 0;
+state.t4.flag = 0;
+state.t5.flag = 0;
 
 // if we receive a message UDP packet
 // ----------------------------------------------------
@@ -34,29 +42,137 @@ server.on("message", function (data, rinfo)
         msg = data.toString();
         var data = ParseMsg(msg);
 
-        var white_score = data.IpponWhite + data.WazaWhite + data.YukoWhite + "(" + data.PenaltyWhite + ")";
-        var blue_score = data.IpponBlue + data.WazaBlue + data.YukoBlue + "(" + data.PenaltyBlue + ")";
-
         // Create a timestamp
         var now = new Date();
         var jsonDate = now.toJSON();
 
         data.timestamp = jsonDate;      // Add the date stamp to the data structure
     
-        // Next check if the scores have changed. Most activities are called here to limit output to when scores change.
-        if ((msg.white_score != old_white) || (msg.blue_score != old_blue)) 
+        if (data.MatSending == 1)
         {
-            // Send data to Judobase if set to active in config file
-            if (config.facebook.active == 'true') 
+            if( 
+                      data.Winner     != 0 
+                    &&  state.t1.flag   == 0     
+                )
             {
-                    var msg = create_msg(data);
-                    post_to_facebook(msg);
+                    var message = create_msg(data);
+                    post_to_facebook(message);
+                    state.t1.white      = white_score;
+                    state.t1.blue       = blue_score;
+                    state.t1.flag       = 1;
+            }
+            else
+            {
+                if (data.DisplayMode == 1)
+                {
+                    state.t1.flag = 0; // Reset the flag back to 0
+                }
             }
         }
-    
-        // Update the global old scores so that next time we receive a packet we have the last one to compare to
-        old_white = white_score;
-        old_blue = blue_score;
+
+
+
+        if (data.MatSending == 2)
+        {
+            if( 
+                      data.Winner     != 0 
+                    &&  state.t2.flag   == 0     
+                )
+            {
+                    var message = create_msg(data);
+                    post_to_facebook(message);
+                    state.t2.white      = white_score;
+                    state.t2.blue       = blue_score;
+                    state.t2.flag       = 1;
+            }
+            else
+            {
+                if (data.DisplayMode == 1)
+                {
+                    state.t2.flag = 0; // Reset the flag back to 0
+                }
+            }
+        }
+
+
+
+        if (data.MatSending == 3)
+        {
+            if( 
+                      data.Winner     != 0 
+                    &&  state.t3.flag   == 0     
+                )
+            {
+                    var message = create_msg(data);
+                    post_to_facebook(message);
+                    state.t3.white      = white_score;
+                    state.t3.blue       = blue_score;
+                    state.t3.flag       = 1;
+            }
+            else
+            {
+                if (data.DisplayMode == 1)
+                {
+                    state.t3.flag = 0; // Reset the flag back to 0
+                }
+            }
+        }
+
+
+
+
+        if (data.MatSending == 4)
+        {
+            if( 
+                      data.Winner     != 0 
+                    &&  state.t4.flag   == 0     
+                )
+            {
+                    var message = create_msg(data);
+                    post_to_facebook(message);
+                    state.t4.white      = white_score;
+                    state.t4.blue       = blue_score;
+                    state.t4.flag       = 1;
+            }
+            else
+            {
+                if (data.DisplayMode == 1)
+                {
+                    state.t4.flag = 0; // Reset the flag back to 0
+                }
+            }
+        }
+
+
+
+        if (data.MatSending == 5)
+        {
+            if( 
+                      data.Winner     != 0 
+                    &&  state.t5.flag   == 0     
+                )
+            {
+                    var message = create_msg(data);
+                    post_to_facebook(message);
+                    state.t5.white      = white_score;
+                    state.t5.blue       = blue_score;
+                    state.t5.flag       = 1;
+            }
+            else
+            {
+                if (data.DisplayMode == 1)
+                {
+                    state.t5.flag = 0; // Reset the flag back to 0
+                }
+            }
+        }
+
+
+
+
+
+
+
     }
 );
 
@@ -65,7 +181,7 @@ server.on("message", function (data, rinfo)
 server.on("listening", function () 
     {
         var address = server.address();
-        console.log("server listening " + address.address + ":" + address.port);
+        console.log("IJF server listening " + address.address + ":" + address.port);
     }
 );
 
@@ -81,16 +197,18 @@ function post_to_facebook(msg)
         2: ?? getr token to write to Judoticker/EJU/IJF feed
         3: Write msg to feed
     */
+    console.log('received:' + msg);
 }
 
 function create_msg(data) 
 {
         var white_score = data.IpponWhite + data.WazaWhite + data.YukoWhite + "(" + data.PenaltyWhite + ")";
         var blue_score = data.IpponBlue + data.WazaBlue + data.YukoBlue + "(" + data.PenaltyBlue + ")";
-        var msg = "#Adidas #";
+        var msg = "#";
         msg += data.IDEvent.toUpperCase();
         msg = msg.replace(/^\s+|\s+$/g, '');
         msg += " " + data.Category + "kg";
+        msg += " " + data.Round;
         msg += " Mat:";
         msg += data.MatSending;
         msg += " ";
