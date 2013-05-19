@@ -192,7 +192,7 @@ function post_to_facebook(msg)
     */
 
     var request = require('request'); 
-    var t_token = 'BAACEdEose0cBAFy9reZCsx5xUCGjhaVjoZA3u1cU6fR78j7G1MIh8XQBuGwh1vZBc2u3YLGXG0gPCrgGBaze9PEQczkzGcZBbR6q7EYdf2ng0oOZAQtpKhr6jWJ25etzqX3GYX3ZAfXtZBtpho9IWeKo7t5YudFDpYNGQz0kUZBEcJt6T6mVJXM0PA2e5Gn38VEf2PDSp885i0LYSZB2ZA5xvDuwAJAAKZCQGLl1dsoOVrBAAZDZD';
+    var t_token = 'BAACEdEose0cBAGzy2GFAp89LDI3rVERy0edpM2D6SFcCmGQsY7i9MQxoK0RFSP0ZBSSAMFZCdDNLTGQ4KZCWdpZB9AhKNkSRiZCaa9M561ZAn5qXhbeZCw2ZBUzyCbC1XtZBtReyAvM9PxYM0ZAdWvO0UC0UUOcWs1ziZCp8hyp5WyWPOKFuKbnwiUM9DTo0tMRSQQsEyMN6bD0j231jGZC0fDn5jnCUAh7sYdwQlyFtBAMQJwZDZD';
     
     console.log(last_facebook_post);
     console.log('received:' + msg);
