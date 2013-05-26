@@ -15,7 +15,16 @@ var config = require('./config');
 var udp_port = 5000; // var to hold port to bind to so we don't have to scroll to the bottom
 var dgram = require("dgram");
 var server = dgram.createSocket("udp4");
-var graph = require('fbgraph');
+
+var Twit = require('twit');
+var T = new Twit({
+        consumer_key: config.twitter.consumer_key,
+        consumer_secret: config.twitter.consumer_secret,
+        access_token: config.twitter.access_token,
+        access_token_secret: config.twitter.access_token_secret
+});
+
+
 
 // ------------------
 // vars for data
@@ -33,7 +42,6 @@ state.t3.flag = 0;
 state.t4.flag = 0;
 state.t5.flag = 0;
 
-var last_facebook_post = 0;
 
 // if we receive a message UDP packet
 // ----------------------------------------------------
@@ -54,17 +62,19 @@ server.on("message", function (data, rinfo)
         if (data.MatSending == 1)
         {
             if( 
-                      data.Winner     != 0 
-                    &&  state.t1.flag   == 0     
+                    (data.Winner     != 0) 
+                    &&  (state.t1.flag   == 0)     
                 )
             {
                     var message = create_msg(data);
-                    post_to_facebook(message);
+                    post_to_twitter(message);
                     state.t1.flag       = 1;
             }
             else
             {
-                if (data.DisplayMode == 1)
+                if (data.DisplayMode == 6
+                     && data.Winner == 0
+                    )
                 {
                     state.t1.flag = 0; // Reset the flag back to 0
                 }
@@ -81,7 +91,7 @@ server.on("message", function (data, rinfo)
                 )
             {
                     var message = create_msg(data);
-                    post_to_facebook(message);
+                    post_to_twitter(message);
                     state.t2.flag       = 1;
             }
             else
@@ -103,7 +113,7 @@ server.on("message", function (data, rinfo)
                 )
             {
                     var message = create_msg(data);
-                    post_to_facebook(message);
+                    post_to_twitter(message);
                     state.t3.flag       = 1;
             }
             else
@@ -126,7 +136,7 @@ server.on("message", function (data, rinfo)
                 )
             {
                     var message = create_msg(data);
-                    post_to_facebook(message);
+                    post_to_twitter(message);
                     state.t4.flag       = 1;
             }
             else
@@ -148,7 +158,7 @@ server.on("message", function (data, rinfo)
                 )
             {
                     var message = create_msg(data);
-                    post_to_facebook(message);
+                    post_to_twitter(message);
                     state.t5.flag       = 1;
             }
             else
@@ -182,83 +192,6 @@ server.on("listening", function ()
 //----------------------------
 //   FUNCTIONS
 // ----------------------------
-
-function post_to_facebook(msg)
-{
-   /* Steps:
-        1: use api key and secret to obtain token
-        2: ?? getr token to write to Judoticker/EJU/IJF feed
-        3: Write msg to feed
-    */
-
-    var request = require('request'); 
-    var t_token = 'BAACEdEose0cBAGzy2GFAp89LDI3rVERy0edpM2D6SFcCmGQsY7i9MQxoK0RFSP0ZBSSAMFZCdDNLTGQ4KZCWdpZB9AhKNkSRiZCaa9M561ZAn5qXhbeZCw2ZBUzyCbC1XtZBtReyAvM9PxYM0ZAdWvO0UC0UUOcWs1ziZCp8hyp5WyWPOKFuKbnwiUM9DTo0tMRSQQsEyMN6bD0j231jGZC0fDn5jnCUAh7sYdwQlyFtBAMQJwZDZD';
-    
-    console.log(last_facebook_post);
-    console.log('received:' + msg);
-    var request_url = "https://graph.facebook.com/oauth/access_token?"
-                    +   "client_id=" +  config.facebook.app_id
-                    +   "&client_secret=" + config.facebook.app_secret
-                    +   "&grant_type=client_credentials";
-
-
-
-    if(last_facebook_post != '0')
-    {
-        // if the last facebook post ID is greater than zero, then we will delete it to keep the top post 
-        // a new one.
-        var delete_url = 'https://graph.facebook.com/'
-                    +  last_facebook_post
-                    + '?access_token=' + t_token;
-
-        request.del(delete_url, function (error, response, body) {
-        if (!error && response.statusCode == 200) {
-            console.log('good-DELETE');
-            console.log(body); // Print the google web page.
-        
-           
-
-        }else{
-            console.log('bad-delete');
-            console.log(error);
-            console.log(response);
-        }
-    }) 
-    }
-/*
-    var request = require('request');
-    request(request_url, function (error, response, body) {
-        if (!error && response.statusCode == 200) {
-            var a_response = body.split('=');
-            access_token = a_response[1];
-            console.log(access_token); // Print the google web page.
-            
-
-        }
-    }) 
- */  
-    
-    var post_url = 'https://graph.facebook.com/Judoticker/feed'
-                    + '?message=' + escape(msg)
-                    + '&access_token=' + t_token;
-    //console.log("URL:" + post_url);
-    request.post(post_url, function (error, response, body) {
-        if (!error && response.statusCode == 200) {
-            console.log('good');
-            console.log(body); // Print the google web page.
-        
-            var json_body = JSON.parse(body);
-            last_facebook_post = json_body.id;
-
-
-
-        }else{
-            console.log('bad');
-            console.log(error);
-            console.log(response);
-        }
-    })                 
-}
 
 function create_msg(data) 
 {
@@ -335,6 +268,19 @@ function ParseMsg(msg) {
     data.DisplayMode = msg.substr(211, 1); // 1 Logo, 6 Timer
     return (data);
 }
+
+
+
+function post_to_twitter(msg) {
+    T.post('statuses/update', {
+            status: msg
+        }, function (err, reply) {
+            console.log(err);
+        }
+    );     
+}
+
+
 
 // Bind our server object to the correct port
 server.bind(udp_port);
