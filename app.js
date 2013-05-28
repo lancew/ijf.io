@@ -275,8 +275,13 @@ function post_to_twitter(msg) {
     T.post('statuses/update', {
             status: msg
         }, function (err, reply) {
-            console.log(err);
-        }
+	    console.log(msg);
+	    if( err === null ){
+		console.log(' - OK');
+	    }else{
+	            console.log(err);
+            }
+	}
     );     
 }
 
