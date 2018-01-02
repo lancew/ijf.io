@@ -8,14 +8,14 @@
     "url": "git://github.com/hookio/ijf_score.git"
   },
   "bin": {
-     "hookio-ijf_score": "./bin/ijf_score"
+    "hookio-ijf_score": "./bin/ijf_score"
   },
-  "main" : "lib/introspect",
+  "main": "lib/introspect",
   "engines": {
     "node": ">= v0.4.7"
   },
   "dependencies": {
-    "hook.io": "0.8.x",
+    "hook.io": "1.0.0",
     "colors": "0.5.x",
     "async": "0.1.x"
   },
