@@ -1,0 +1,31 @@
+{
+  "name": "ijf.io",
+  "version": "1.0.0",
+  "description": "IJF Judo scoreboard to social media engine",
+  "main": "tatami1.js",
+  "directories": {
+    "doc": "doc"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lancew/ijf.io.git"
+  },
+  "keywords": [
+    "judo"
+  ],
+  "author": "Lance Wicks",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lancew/ijf.io/issues"
+  },
+  "homepage": "https://github.com/lancew/ijf.io#readme",
+  "dependencies": {
+    "dgram": "^1.0.1",
+    "querystring": "^0.2.0",
+    "twit": "^2.2.11",
+    "twitter": "^1.7.1"
+  }
+}
