@@ -1,9 +1,0 @@
-#!/usr/bin/env node
-
-var Ijf_score = require('../lib/ijf_score').Ijf_score;
-
-var ijf_score = new Ijf_score({ 
-  name: 'the-ijf_score'
-});
-
-ijf_score.start();
